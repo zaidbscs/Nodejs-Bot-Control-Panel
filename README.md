@@ -34,7 +34,7 @@ npm install -g pm2
 Clone your project repository from GitHub and navigate into the workspace:
 
 ```bash
-git clone [https://github.com/zaidbscs/NODEJS-BOT-CONTROL-PANEL.git](https://github.com/zaidbscs/NODEJS-BOT-CONTROL-PANEL.git)
+git clone https://github.com/zaidbscs/NODEJS-BOT-CONTROL-PANEL.git
 cd NODEJS-BOT-CONTROL-PANEL
 
 ```
