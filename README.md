@@ -1,4 +1,4 @@
-
+![NODEJS BOT CONTOL PANEL ](assets/screencapture-file-C-Bots-bot-control-api-index-html-2026-09-30-05_52_47.png)
 
 ```markdown
 # 🤖 Node.js Bot Control Panel for Windows and VPS
