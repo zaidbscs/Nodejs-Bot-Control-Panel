@@ -1,3 +1,5 @@
+![Nodejs Bot Control Panel](https://readmecraft.free.nf/uploads/banner_6abcac217866e.png)
+
 ![NODEJS BOT CONTOL PANEL ](assets/screencapture-file-C-Bots-bot-control-api-index-html-2026-09-30-05_52_47.png)
 
 ```markdown
