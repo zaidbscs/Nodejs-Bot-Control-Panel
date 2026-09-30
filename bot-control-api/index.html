@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js Bot Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col items-center py-8 px-4 font-sans transition-colors duration-200">
+    <div class="w-full max-w-5xl space-y-6">
+        
+        <!-- Header & Auth Panel -->
+        <div class="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 gap-4 transition-colors">
+            <div>
+                <h1 class="text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight flex items-center gap-2">
+                    🤖 Bot Control Panel
+                </h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Manage PM2 background processes and configure your bots seamlessly.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+                <input type="password" id="apiKeyInput" placeholder="Enter API Key" class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-blue-500 w-full sm:w-40 transition text-gray-800 dark:text-gray-100">
+                <button onclick="saveApiKey()" class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2.5 rounded-xl text-xs font-medium transition border border-gray-300 dark:border-gray-700">Save Key</button>
+                <button onclick="fetchAllData()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition shadow-sm w-full sm:w-auto">Refresh</button>
+                <!-- Theme Toggle Button -->
+                <button onclick="toggleTheme()" id="themeToggleBtn" class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3.5 py-2.5 rounded-xl text-xs font-medium transition border border-gray-300 dark:border-gray-700 flex items-center justify-center gap-1.5 w-full sm:w-auto">
+                    🌙 Dark
+                </button>
+            </div>
+        </div>
+
+        <!-- System Resource Status Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-colors">
+                <p class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">Host OS Uptime</p>
+                <p id="sysUptime" class="text-base font-bold text-blue-600 dark:text-blue-400 mt-1">Loading...</p>
+            </div>
+            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-colors">
+                <p class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">System RAM Usage</p>
+                <p id="sysRam" class="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-1">Loading...</p>
+            </div>
+            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-colors">
+                <p class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">CPU Cores</p>
+                <p id="sysCpu" class="text-base font-bold text-purple-600 dark:text-purple-400 mt-1">Loading...</p>
+            </div>
+            <div class="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm transition-colors">
+                <p class="text-[11px] text-gray-400 uppercase font-bold tracking-wider">Managed Bots</p>
+                <p id="sysBotCount" class="text-base font-bold text-amber-600 dark:text-amber-400 mt-1">0 Active</p>
+            </div>
+        </div>
+
+        <!-- Quick Launch New Bot Panel -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 transition-colors">
+            <h2 class="text-md font-bold mb-3 text-blue-700 dark:text-blue-400 flex items-center gap-2">🚀 Launch / Register New Bot</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input type="text" id="launchBotName" placeholder="Bot Name (e.g. my-bot)" class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition text-gray-800 dark:text-gray-100">
+                <select id="launchFolderSelect" onchange="updateLaunchFileList()" class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition text-gray-800 dark:text-gray-100">
+                    <option value="">-- Select Bot Folder --</option>
+                </select>
+                <select id="launchFileSelect" class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition text-gray-800 dark:text-gray-100">
+                    <option value="">-- Select Entry File (e.g. index.js) --</option>
+                </select>
+            </div>
+            <div class="mt-3 flex justify-end">
+                <button onclick="startNewBotDropdown()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition shadow-sm">Start Bot Process</button>
+            </div>
+        </div>
+
+        <!-- File Explorer & Editor Panel -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 transition-colors">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                <div>
+                    <h2 class="text-md font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">📁 File Explorer & Editor</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Modify code inside directories or back up folders instantly.</p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="createNewFilePrompt()" class="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-xl text-xs font-semibold transition">📄 New File</button>
+                    <button onclick="cloneSelectedFolder()" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-xl text-xs font-semibold transition shadow-sm">📋 Clone / Backup Folder</button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Select Bot Folder</label>
+                    <select id="folderSelect" onchange="updateFileList()" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition text-gray-800 dark:text-gray-100">
+                        <option value="">-- Select Folder --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Select File to Edit</label>
+                    <select id="fileSelect" onchange="loadFileContent()" class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition text-gray-800 dark:text-gray-100">
+                        <option value="">-- Select File --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="relative mb-3">
+                <textarea id="fileEditor" rows="12" class="w-full bg-gray-50 dark:bg-gray-950 text-emerald-700 dark:text-emerald-400 border border-gray-300 dark:border-gray-700 p-4 rounded-xl text-xs font-mono focus:outline-none focus:border-blue-500 transition shadow-inner" placeholder="Select a folder and file above to view and edit code..."></textarea>
+            </div>
+            
+            <div class="flex justify-end">
+                <button onclick="saveFileContent()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition shadow-sm">💾 Save Changes</button>
+            </div>
+        </div>
+
+        <!-- Active & Managed Bots Grid -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 transition-colors">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                <h2 class="text-md font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">⚡ Active & Managed Bots</h2>
+                <input type="text" id="botSearchFilter" oninput="filterBotList()" placeholder="Filter bots by name..." class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-3 py-1.5 rounded-xl text-xs focus:outline-none focus:border-blue-500 w-full sm:w-64 transition text-gray-800 dark:text-gray-100">
+            </div>
+            <div id="botList" class="space-y-3">
+                <p class="text-gray-400 text-center py-8 text-sm">Loading bots...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-3 rounded-2xl shadow-xl hidden transition-all z-50 text-gray-800 dark:text-gray-100">
+        <p id="toastMsg" class="text-sm font-medium"></p>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let allFoldersData = [];
+        let rawBotsData = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Theme initialization (defaults to light/white)
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const btn = document.getElementById('themeToggleBtn');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                if (btn) btn.innerHTML = '☀️ Light';
+            } else {
+                document.documentElement.classList.remove('dark');
+                if (btn) btn.innerHTML = '🌙 Dark';
+            }
+
+            const savedKey = localStorage.getItem('bot_panel_api_key');
+            if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+            fetchAllData();
+        });
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeToggleBtn');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                btn.innerHTML = '🌙 Dark';
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                btn.innerHTML = '☀️ Light';
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value;
+            localStorage.setItem('bot_panel_api_key', key);
+            showToast('API Key saved to browser storage!');
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toastMsg');
+            msg.innerText = message;
+            const isDark = document.documentElement.classList.contains('dark');
+            toast.className = `fixed bottom-5 right-5 px-4 py-3 rounded-2xl shadow-xl transition-all border z-50 ${isError ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900 text-red-700 dark:text-red-400' : (isDark ? 'bg-gray-800 border-gray-700 text-gray-100' : 'bg-white border-gray-200 text-gray-800')}`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        async function fetchAllData() {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            const container = document.getElementById('botList');
+            try {
+                const res = await fetch(`${API_URL}/api/status`, { headers: { 'x-api-key': apiKey } });
+                if (!res.ok) throw new Error('Unauthorized or Server Unreachable');
+                const systemData = await res.json();
+                
+                document.getElementById('sysUptime').innerText = systemData.system.uptimeFormatted;
+                document.getElementById('sysRam').innerText = `${systemData.system.freeMemory} / ${systemData.system.totalMemory}`;
+                document.getElementById('sysCpu').innerText = `${systemData.system.cpus} Cores`;
+                document.getElementById('sysBotCount').innerText = `${systemData.bots.length} Managed`;
+
+                rawBotsData = systemData.bots;
+                renderBots(rawBotsData);
+
+                const folderRes = await fetch(`${API_URL}/api/folders`, { headers: { 'x-api-key': apiKey } });
+                allFoldersData = await folderRes.json();
+                populateFolderDropdowns();
+
+            } catch (err) {
+                container.innerHTML = `<p class="text-red-500 text-center py-8 text-sm">Failed to fetch data. Check your API key or server status.</p>`;
+            }
+        }
+
+        function populateFolderDropdowns() {
+            const folderSelect = document.getElementById('folderSelect');
+            const currentSelectedFolder = folderSelect.value;
+            folderSelect.innerHTML = '<option value="">-- Select Folder --</option>' + allFoldersData.map(f => `<option value="${f.name}" ${f.name === currentSelectedFolder ? 'selected' : ''}>${f.name}</option>`).join('');
+            if (currentSelectedFolder) updateFileList();
+
+            const launchFolderSelect = document.getElementById('launchFolderSelect');
+            const currentLaunchFolder = launchFolderSelect.value;
+            launchFolderSelect.innerHTML = '<option value="">-- Select Bot Folder --</option>' + allFoldersData.map(f => `<option value="${f.name}" ${f.name === currentLaunchFolder ? 'selected' : ''}>${f.name}</option>`).join('');
+            if (currentLaunchFolder) updateLaunchFileList();
+        }
+
+        function updateLaunchFileList() {
+            const folderName = document.getElementById('launchFolderSelect').value;
+            const fileSelect = document.getElementById('launchFileSelect');
+            if (!folderName) {
+                fileSelect.innerHTML = '<option value="">-- Select Entry File (e.g. index.js) --</option>';
+                return;
+            }
+            const folderObj = allFoldersData.find(f => f.name === folderName);
+            if (!folderObj) return;
+            fileSelect.innerHTML = '<option value="">-- Select Entry File --</option>' + folderObj.files.map(file => `<option value="${file}">${file}</option>`).join('');
+        }
+
+        function filterBotList() {
+            const query = document.getElementById('botSearchFilter').value.toLowerCase();
+            const filtered = rawBotsData.filter(bot => bot.name.toLowerCase().includes(query));
+            renderBots(filtered);
+        }
+
+        function renderBots(bots) {
+            const container = document.getElementById('botList');
+            if (bots.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-6 text-sm">No bots registered in PM2.</p>';
+                return;
+            }
+
+            container.innerHTML = bots.map(bot => {
+                const isOnline = bot.pm2_env.status === 'online';
+                const statusColor = isOnline ? 'bg-emerald-500' : 'bg-rose-500';
+                const scriptPath = bot.pm2_env.pm_exec_path || 'N/A';
+                const memoryUsage = bot.monit ? Math.round(bot.monit.memory / 1024 / 1024) : 0;
+                const cpuUsage = bot.monit ? bot.monit.cpu : 0;
+
+                return `
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700/80 gap-4 transition hover:border-gray-300 dark:hover:border-gray-600">
+                        <div class="flex items-start space-x-3 w-full md:w-auto">
+                            <span class="w-3 h-3 rounded-full ${statusColor} mt-1.5 flex-shrink-0 shadow-sm"></span>
+                            <div>
+                                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm flex items-center gap-2">${bot.name}</h3>
+                                <p class="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5 break-all">📁 ${scriptPath}</p>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">PID: ${bot.pid || 'N/A'} | CPU: ${cpuUsage}% | RAM: ${memoryUsage} MB | Restarts: ${bot.pm2_env.restart_time}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 flex-shrink-0 w-full md:w-auto justify-end flex-wrap gap-y-2">
+                            <span class="text-[10px] px-2.5 py-1 rounded-md uppercase font-bold tracking-wide ${isOnline ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900'}">${bot.pm2_env.status}</span>
+                            <button onclick="restartBot('${bot.name}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Restart</button>
+                            <button onclick="${isOnline ? `stopBot('${bot.name}')` : `startExistingBot('${bot.name}', '${scriptPath.replace(/\\/g, '\\\\')}')`}" class="${isOnline ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">${isOnline ? 'Stop' : 'Start'}</button>
+                            <button onclick="deleteBot('${bot.name}')" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateFileList() {
+            const folderName = document.getElementById('folderSelect').value;
+            const fileSelect = document.getElementById('fileSelect');
+            if (!folderName) {
+                fileSelect.innerHTML = '<option value="">-- Select File --</option>';
+                document.getElementById('fileEditor').value = '';
+                return;
+            }
+            const folderObj = allFoldersData.find(f => f.name === folderName);
+            if (!folderObj) return;
+            fileSelect.innerHTML = '<option value="">-- Select File --</option>' + folderObj.files.map(file => `<option value="${file}">${file}</option>`).join('');
+        }
+
+        async function loadFileContent() {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            const folder = document.getElementById('folderSelect').value;
+            const filePath = document.getElementById('fileSelect').value;
+            if (!folder || !filePath) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/read-file`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ folder, filePath })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                document.getElementById('fileEditor').value = data.content;
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function saveFileContent() {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            const folder = document.getElementById('folderSelect').value;
+            const filePath = document.getElementById('fileSelect').value;
+            const content = document.getElementById('fileEditor').value;
+
+            if (!folder || !filePath) {
+                showToast('Please select a folder and file first!', true);
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/api/save-file`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ folder, filePath, content })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                showToast(data.message);
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function createNewFilePrompt() {
+            const folder = document.getElementById('folderSelect').value;
+            if (!folder) {
+                showToast('Please select a target folder first!', true);
+                return;
+            }
+            const filePath = prompt('Enter relative path for the new file (e.g. config.json or utils/helper.js):');
+            if (!filePath) return;
+
+            const apiKey = document.getElementById('apiKeyInput').value;
+            try {
+                const res = await fetch(`${API_URL}/api/save-file`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ folder, filePath, content: '' })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                showToast('File created successfully!');
+                fetchAllData();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function cloneSelectedFolder() {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            const sourceFolder = document.getElementById('folderSelect').value;
+            if (!sourceFolder) {
+                showToast('Please select a folder to clone first!', true);
+                return;
+            }
+            const newFolderName = prompt(`Enter backup / cloned folder name for '${sourceFolder}':`, `${sourceFolder}-backup`);
+            if (!newFolderName) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/clone`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ sourceFolder, newFolderName })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to clone folder');
+                showToast(data.message);
+                fetchAllData();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function startNewBotDropdown() {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            const name = document.getElementById('launchBotName').value.trim();
+            const folder = document.getElementById('launchFolderSelect').value;
+            const file = document.getElementById('launchFileSelect').value;
+
+            if (!name || !folder || !file) {
+                showToast('Please enter a bot name, select a folder, and pick an entry file!', true);
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/api/start-dropdown`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ name, folder, file })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to start bot');
+                showToast(data.message);
+                document.getElementById('launchBotName').value = '';
+                fetchAllData();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function startExistingBot(name, script) {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            try {
+                const res = await fetch(`${API_URL}/api/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ name, script })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                showToast(data.message);
+                fetchAllData();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function restartBot(name) {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            try {
+                const res = await fetch(`${API_URL}/api/restart`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to restart bot');
+                showToast(data.message);
+                fetchAllData();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function stopBot(name) {
+            const apiKey = document.getElementById('apiKeyInput').value;
+            try {
+                const res = await fetch(`${API_URL}/api/stop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to stop bot');
+                showToast(data.message);
+                fetchAllData();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+
+        async function deleteBot(name) {
+            if (!confirm(`Are you sure you want to remove bot '${name}' from PM2 monitoring?`)) return;
+            const apiKey = document.getElementById('apiKeyInput').value;
+            try {
+                const res = await fetch(`${API_URL}/api/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to delete bot');
+                showToast(data.message);
+                fetchAllData();
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        }
+    </script>
+</body>
+</html>
