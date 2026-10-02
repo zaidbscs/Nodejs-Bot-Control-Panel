@@ -9,6 +9,10 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// ADD THIS LINE RIGHT HERE:
+app.use(express.static('C:\\Bots\\bot-control-api'));
+//http://localhost:3000/index.html
+
 const PORT = 3000;
 const SECRET_API_KEY = 'my-super-secret-key-123';
 const BASE_BOTS_DIR = 'C:\\Bots';
