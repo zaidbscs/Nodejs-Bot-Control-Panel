@@ -44,10 +44,10 @@ cd NODEJS-BOT-CONTROL-PANEL
 
 ### Step 3: Navigate to the Server Folder & Initialize
 
-Go into the control panel folder (`bot-control-ap`) and initialize the package configuration:
+Go into the control panel folder (`bot-control-api`) and initialize the package configuration:
 
 ```bash
-cd bot-control-ap
+cd bot-control-api
 npm init -y
 npm install express body-parser cors pm2  # (or install your project dependencies)
 
@@ -55,10 +55,10 @@ npm install express body-parser cors pm2  # (or install your project dependencie
 
 ### Step 4: Start the Control Panel Server via PM2
 
-Launch the control panel backend (`server.js`) using PM2 under the name `bot-control-ap`:
+Launch the control panel backend (`server.js`) using PM2 under the name `bot-control-api`:
 
 ```bash
-pm2 start server.js --name "bot-control-ap"
+pm2 start server.js --name "bot-control-api"
 
 ```
 
@@ -98,21 +98,21 @@ pm2 status
 
 * **View real-time logs:**
 ```bash
-pm2 logs bot-control-ap
+pm2 logs bot-control-api
 
 ```
 
 
 * **Restart the control panel server:**
 ```bash
-pm2 restart bot-control-ap
+pm2 restart bot-control-api
 
 ```
 
 
 * **Stop the control panel server:**
 ```bash
-pm2 stop bot-control-ap
+pm2 stop bot-control-api
 
 ```
 
